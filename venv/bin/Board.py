@@ -6,6 +6,13 @@ class Board:
     def __init__(self):
         self.layout = numpy.zeros((3, 3))
         self.filled = 0
+
+    def copy(self):
+        board = Board()
+        board.layout = numpy.copy(self.layout)
+        board.filled = self.filled
+        return board
+
     def insert(self, place, sym):
         symtoval = {'X': 1, 'O': 2}
         if self.layout[place[0], place[1]] == 0:
@@ -29,14 +36,14 @@ class Board:
         diag_result = self.check_diagonal((y,x))
         if col_result + row_result + diag_result != 0:
             if col_result == 1 or row_result == 1 or diag_result == 1:
-                print("X wins!")
-                return True
+                # "X wins!")
+                return True, 1
             elif col_result == 2 or row_result == 2 or diag_result ==2:
-                print("O wins!")
-                return True
-            if self.filled > 9:
-                print("Tie!!")
-                return True
+                # print("O wins!")
+                return True, 2
+            elif self.filled > 9:
+                # print("Tie!!")
+                return True, 3
             else:
                 return False
         else:

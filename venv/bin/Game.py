@@ -1,5 +1,6 @@
 from Board import Board
 import math
+import numpy
 
 
 def game():
@@ -52,7 +53,14 @@ def game():
                     print("Please input a space that has not been taken.")
                 else:
                     x_turn = not x_turn
-                    if board.check_end((y, x)):
+                    end, victor = board.check_end((y, x))
+                    if end:
+                        if victor == 1:
+                            print("X wins!")
+                        elif victor == 2:
+                            print("O wins!")
+                        else:
+                            print("Tie!")
                         board.print_board()
                         playing = False
             except ValueError:
@@ -79,7 +87,14 @@ def game():
                     print("Please input a space that has not been taken.")
                 else:
                     x_turn = not x_turn
-                    if board.check_end((y, x)):
+                    end, victor = board.check_end((y, x))
+                    if end:
+                        if victor == 1:
+                            print("X wins!")
+                        elif victor == 2:
+                            print("O wins!")
+                        else:
+                            print("Tie!")
                         board.print_board()
                         playing = False
             except ValueError:
@@ -102,41 +117,69 @@ def AlphaBetaSearch(state): # return action as tuple coordinates
     return actions[v]
 
 def Actions(state):
+    # TODO
     #return a dictionary with actions with corresponding evaluations
     actions = {}
     return actions
 
-def MAXVAL(state, alpha, beta):
+def MAXVAL(state, alpha, beta, lastmove):
     if CUTOFF(state, depth):
-        return EVAL(state)
+        return EVAL(state, lastmove)
     v = -math.inf
     for a in Actions(state):  #figure out if iterating through keys or values
-        v = max(v, MINVAL(RESULT(state, a), alpha, beta))
+        v = max(v, MINVAL(RESULT(state, a), alpha, beta, lastmove))
         if v >= beta:
             return v
         a = max(alpha, v)
     return v
 
-def MINVAL(state, alpha, beta):
+def MINVAL(state, alpha, beta, lastmove):
     if CUTOFF(state, depth):
-        return EVAL(state)
+        return EVAL(state, lastmove)
     v = math.inf
     for a in Actions(state):
-        v = min(v, MAXVAL(RESULT(state, a), alpha, beta))
+        v = min(v, MAXVAL(RESULT(state, a), alpha, beta, lastmove))
         if v <= alpha:
             return v
         beta = min(beta, v)
     return v
 
 
-def EVAL(state):
-    # evaluate state either victory or not if terminal or heuristic if not
-    return 0
+def EVAL(state, lastmove):
+    # evaluate state either victory or not if terminal or heuristic if not\
+    end, victor = state.check_end(lastmove)
+    if end:
+        if victor == 1:
+            return 100
+            # 1 because that is the value it would be for X, since it is victory,
+            # and then if it is O it is trying to minimize it
+        elif victor == 2:
+            return -100
+        else:
+            return 0
+    else:
+        eval = numpy.zeros(8) # in the end will have the evaluations for [row 1, 2, 3, col 1, 2, 3,  diagonal 1, 2]
+        val = 0
+        for i in range(3):
+            for j in range(3):
+                if state[i,j] == 1:
+                    val = 1
+                elif state[i, j] ==2:
+                    val = -1
+                eval[i] += val
+                eval[i+3] += val
+                if i == j:
+                    eval[6] += val
+                elif (i, j) in {(0, 2), (1, 1), (2, 0)}:
+                    eval[7] += val
+        return sum(eval)
+
 
 
 def RESULT(state, action):
     # show the result of the action on the state)
-    newstate = 0 #copy of state and then perform action but don't copy reference
+    newstate = state.copy() #copy of state and then perform action but don't copy reference
+    newstate.insert(action, "O")
     return newstate
 
 
