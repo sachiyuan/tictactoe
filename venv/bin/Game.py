@@ -1,4 +1,5 @@
 from Board import Board
+import math
 
 
 def game():
@@ -25,15 +26,16 @@ def game():
     print("You may not use a space which has already been filled")
     print("The game will end when one player has filled a row or column with their symbol, or when the board is filled")
     x_turn = True
+    playing = True
     if not single_player:
         print("X goes first")
 
-
-
-        while True:
+        while playing:
             board.print_board()
             symbol = "O"
             success = False
+            x, y = 0, 0
+
             if x_turn:
                 symbol = "X"
             place = input("Where would you like to go?\n")
@@ -52,15 +54,90 @@ def game():
                     x_turn = not x_turn
                     if board.check_end((y, x)):
                         board.print_board()
-                        break
-            except:
+                        playing = False
+            except ValueError:
                 print("Not a valid input. Please try again.")
 
+    else:
+        print("You go first.")
+        board.print_board()
+        symbol = "O"
+        success = False
+        if x_turn:
+            symbol = "X"
+            place = input("Where would you like to go?\n")
+            try:
+                place = int(place)
+                if 0 < place < 10:
+                    place -= 1
+                    y = place // 3
+                    x = place % 3
+                    success = board.insert((y, x), symbol)
+                else:
+                    print("Please input a number on the board")
+                if not success:
+                    print("Please input a space that has not been taken.")
+                else:
+                    x_turn = not x_turn
+                    if board.check_end((y, x)):
+                        board.print_board()
+                        playing = False
+            except ValueError:
+                print("Not a valid input. Please try again.")
+        else:
+            action = AlphaBetaSearch(board)
+            success = board.insert(action, symbol)
+            if not success:
+                print("Whelp, something went wrong")
+            else:
+                x_turn = not x_turn
+                if board.check_end((y, x)):
+                    board.print_board()
+                    playing = False
 
 
+def AlphaBetaSearch(state): # return action as tuple coordinates
+    v = MAXVAL(state, -math.inf, math.inf)
+    actions = Actions(state)  # dictionary
+    return actions[v]
+
+def Actions(state):
+    #return a dictionary with actions with corresponding evaluations
+    actions = {}
+    return actions
+
+def MAXVAL(state, alpha, beta):
+    if CUTOFF(state, depth):
+        return EVAL(state)
+    v = -math.inf
+    for a in Actions(state):  #figure out if iterating through keys or values
+        v = max(v, MINVAL(RESULT(state, a), alpha, beta))
+        if v >= beta:
+            return v
+        a = max(alpha, v)
+    return v
+
+def MINVAL(state, alpha, beta):
+    if CUTOFF(state, depth):
+        return EVAL(state)
+    v = math.inf
+    for a in Actions(state):
+        v = min(v, MAXVAL(RESULT(state, a), alpha, beta))
+        if v <= alpha:
+            return v
+        beta = min(beta, v)
+    return v
 
 
+def EVAL(state):
+    # evaluate state either victory or not if terminal or heuristic if not
+    return 0
 
+
+def RESULT(state, action):
+    # show the result of the action on the state)
+    newstate = 0 #copy of state and then perform action but don't copy reference
+    return newstate
 
 
 

@@ -5,11 +5,12 @@ import numpy
 class Board:
     def __init__(self):
         self.layout = numpy.zeros((3, 3))
-
+        self.filled = 0
     def insert(self, place, sym):
         symtoval = {'X': 1, 'O': 2}
         if self.layout[place[0], place[1]] == 0:
             self.layout[place[0], place[1]] = symtoval[sym]
+            self.filled+=1
             return True
         else:
             print("That space is already taken.")
@@ -29,11 +30,15 @@ class Board:
         if col_result + row_result + diag_result != 0:
             if col_result == 1 or row_result == 1 or diag_result == 1:
                 print("X wins!")
+                return True
             elif col_result == 2 or row_result == 2 or diag_result ==2:
                 print("O wins!")
-            else:
+                return True
+            if self.filled > 9:
                 print("Tie!!")
-            return True
+                return True
+            else:
+                return False
         else:
             return False
 #TODO: Make it so it doesn't end game when column is full if board is not full
