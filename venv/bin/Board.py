@@ -45,9 +45,9 @@ class Board:
                 # print("Tie!!")
                 return True, 3
             else:
-                return False
+                return False, 0
         else:
-            return False
+            return False, 0
 #TODO: Make it so it doesn't end game when column is full if board is not full
     def check_column(self, x):
         """
