@@ -53,7 +53,7 @@ def game():
                     print("Please input a space that has not been taken.")
                 else:
                     x_turn = not x_turn
-                    end, victor = board.check_end((y, x))
+                    end, victor = board.check_end()
                     if end:
                         if victor == 1:
                             print("X wins!")
@@ -72,7 +72,6 @@ def game():
             board.print_board()
             symbol = "O"
             success = False
-            print('top of turn')
             if x_turn:
                 symbol = "X"
                 place = input("Where would you like to go?\n")
@@ -89,8 +88,7 @@ def game():
                         print("Please input a space that has not been taken.")
                     else:
                         x_turn = not x_turn
-                        end, victor = board.check_end((y, x))
-                        print(end)
+                        end, victor = board.check_end()
                         if end:
                             if victor == 1:
                                 print("X wins!")
@@ -103,17 +101,13 @@ def game():
                 except ValueError:
                     print("Not a valid input. Please try again.")
             else:
-                print('in else)')
                 action = AlphaBetaSearch(board)
-                print('out of alpha: ', action)
                 success = board.insert(action, symbol)
                 if not success:
                     print("Whelp, something went wrong")
                 else:
-                    print('turn success')
                     x_turn = not x_turn
-                    end, victor = board.check_end((y, x))
-                    print(end)
+                    end, victor = board.check_end()
                     if end:
                         if victor == 1:
                             print("X wins!")
@@ -126,15 +120,12 @@ def game():
 
 
 def AlphaBetaSearch(state): # return action as tuple coordinates
-    print('in alpha beta')
-    v, action = MAXVAL(state, -math.inf, math.inf, 0, (-1, -1))
-    print('action: ', action)
+    v, action = MAXVAL(state, -math.inf, math.inf, 0)
     # actions = Actions(state)
     # need to find which action has value v
     return action
 
 def Actions(state):
-    print('in actions')
     #return a list of legal moves
     actions = []
     for i in range(3):
@@ -144,17 +135,14 @@ def Actions(state):
 
     return actions
 
-def MAXVAL(state, alpha, beta, depth, lastmove):
-    print('in maxval')
-    if CUTOFF(state, depth, lastmove):
-        print('in if')
-        return EVAL(state, lastmove), lastmove
-    print('past ')
+def MAXVAL(state, alpha, beta, depth):
+    if CUTOFF(state, depth):
+        return EVAL(state), state.lastmove
     depth += 1
     v = -math.inf
     action = (-1, -1)
     for a in Actions(state):  #figure out if iterating through keys or values
-        minval, z = MINVAL(RESULT(state, a), alpha, beta, depth, lastmove)
+        minval, z = MINVAL(RESULT(state, a, 'O'), alpha, beta, depth)
         if v < minval:
             v = minval
             action = a
@@ -164,15 +152,14 @@ def MAXVAL(state, alpha, beta, depth, lastmove):
         alpha = max(alpha, v)
     return v, action
 
-def MINVAL(state, alpha, beta, depth, lastmove):
-    print('in minval')
-    if CUTOFF(state, depth, lastmove):
-        return EVAL(state, lastmove), lastmove
+def MINVAL(state, alpha, beta, depth):
+    if CUTOFF(state, depth):
+        return EVAL(state), state.lastmove
     v = math.inf
     depth += 1
     action = (-1, -1)
     for a in Actions(state):
-        maxval, z = MAXVAL(RESULT(state, a), alpha, beta, depth, lastmove)
+        maxval, z = MAXVAL(RESULT(state, a, 'X'), alpha, beta, depth)
         # v = min(v, MAXVAL(RESULT(state, a), alpha, beta, lastmove))
         if v > maxval:
             v = maxval
@@ -183,17 +170,14 @@ def MINVAL(state, alpha, beta, depth, lastmove):
     return v, action
 
 
-def EVAL(state, lastmove):
-    print('in eval')
+def EVAL(state):
     # evaluate state either victory or not if terminal or heuristic if not\
-    end, victor = state.check_end(lastmove)
+    end, victor = state.check_end()
     if end:
         if victor == 1:
-            return 100
-            # 1 because that is the value it would be for X, since it is victory,
-            # and then if it is O it is trying to minimize it
+            return -1000
         elif victor == 2:
-            return -100
+            return 100
         else:
             return 0
     else:
@@ -213,18 +197,16 @@ def EVAL(state, lastmove):
                     eval[7] += val
         return sum(eval)
 
-def CUTOFF(state, depth, lastmove):
-    print('in cutoff')
-    end, victor = state.check_end(lastmove)
+def CUTOFF(state, depth):
+    end, victor = state.check_end()
     if depth >= 10 or end:
         return True
     return False
 
-def RESULT(state, action):
-    print("in result")
+def RESULT(state, action, symbol):
     # show the result of the action on the state)
     newstate = state.copy() #copy of state and then perform action but don't copy reference
-    newstate.insert(action, "O")
+    newstate.insert(action, symbol)
     return newstate
 
 

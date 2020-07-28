@@ -6,6 +6,7 @@ class Board:
     def __init__(self):
         self.layout = numpy.zeros((3, 3))
         self.filled = 0
+        self.lastmove = (-1, -1)
 
     def copy(self):
         board = Board()
@@ -18,22 +19,23 @@ class Board:
         if self.layout[place[0], place[1]] == 0:
             self.layout[place[0], place[1]] = symtoval[sym]
             self.filled+=1
+            self.lastmove = place
             return True
         else:
             print("That space is already taken.")
             return False
 
-    def check_end(self, last_move):
+    def check_end(self):
         """
         Check if the game is finished
         :param last_move: Coordinates of the last move (x,y)
         :return result:  True if the game is not over, False if it is
         """
-        x = last_move[1]
-        y = last_move[0]
+        x = self.lastmove[1]
+        y = self.lastmove[0]
         col_result = self.check_column(x)
         row_result = self.check_row(y)
-        diag_result = self.check_diagonal((y,x))
+        diag_result = self.check_diagonal((y, x))
         if col_result + row_result + diag_result != 0:
             if col_result == 1 or row_result == 1 or diag_result == 1:
                 # "X wins!")
@@ -41,7 +43,7 @@ class Board:
             elif col_result == 2 or row_result == 2 or diag_result ==2:
                 # print("O wins!")
                 return True, 2
-            elif self.filled > 9:
+            elif self.filled >= 9:
                 # print("Tie!!")
                 return True, 3
             else:
@@ -106,6 +108,8 @@ class Board:
                     return 0
                 else:
                     return 3
+        else:
+            return 0
 
     def print_board(self):
         valtosym = {0: ' ', 1: 'X', 2: 'O'}
