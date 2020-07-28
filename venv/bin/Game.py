@@ -1,7 +1,7 @@
 from Board import Board
 import math
 import numpy
-
+import random
 
 def game():
     single_player = False
@@ -67,6 +67,19 @@ def game():
                 print("Not a valid input. Please try again.")
 
     else:
+        inputing = True
+        diff = 3
+        while inputing:
+            level = input("Please choose difficulty:\n 1) Easy \n 2) Medium \n 3) Hard\n")
+            if level.lower() not in {"1", "2", "3", "easy", "medium", "hard"}:
+                print("Please choose one of the available options. Either indicate the number of the level or write out "
+                      "the difficulty")
+            else:
+                inputing = False
+        if level.lower() in {"1", "easy"}:
+            diff = 1
+        elif level.lower() in {"2", "medium"}:
+            diff = 2
         print("You go first.")
         while playing:
             board.print_board()
@@ -101,7 +114,7 @@ def game():
                 except ValueError:
                     print("Not a valid input. Please try again.")
             else:
-                action = AlphaBetaSearch(board)
+                action = AlphaBetaSearch(board, diff)
                 success = board.insert(action, symbol)
                 if not success:
                     print("Whelp, something went wrong")
@@ -119,8 +132,13 @@ def game():
                         playing = False
 
 
-def AlphaBetaSearch(state): # return action as tuple coordinates
-    v, action = MAXVAL(state, -math.inf, math.inf, 0)
+def AlphaBetaSearch(state, difficulty): # return action as tuple coordinates
+    scale = 100
+    if difficulty == 1:
+        scale = -0.1
+    elif difficulty == 2:
+        scale = -1
+    v, action = MAXVAL(state, -math.inf, math.inf, 0, scale)
     # actions = Actions(state)
     # need to find which action has value v
     return action
@@ -135,14 +153,14 @@ def Actions(state):
 
     return actions
 
-def MAXVAL(state, alpha, beta, depth):
+def MAXVAL(state, alpha, beta, depth, diff):
     if CUTOFF(state, depth):
-        return EVAL(state), state.lastmove
+        return EVAL(state, diff), state.lastmove
     depth += 1
     v = -math.inf
     action = (-1, -1)
     for a in Actions(state):  #figure out if iterating through keys or values
-        minval, z = MINVAL(RESULT(state, a, 'O'), alpha, beta, depth)
+        minval, z = MINVAL(RESULT(state, a, 'O'), alpha, beta, depth, diff)
         if v < minval:
             v = minval
             action = a
@@ -152,14 +170,14 @@ def MAXVAL(state, alpha, beta, depth):
         alpha = max(alpha, v)
     return v, action
 
-def MINVAL(state, alpha, beta, depth):
+def MINVAL(state, alpha, beta, depth, diff):
     if CUTOFF(state, depth):
-        return EVAL(state), state.lastmove
+        return EVAL(state, diff), state.lastmove
     v = math.inf
     depth += 1
     action = (-1, -1)
     for a in Actions(state):
-        maxval, z = MAXVAL(RESULT(state, a, 'X'), alpha, beta, depth)
+        maxval, z = MAXVAL(RESULT(state, a, 'X'), alpha, beta, depth, diff)
         # v = min(v, MAXVAL(RESULT(state, a), alpha, beta, lastmove))
         if v > maxval:
             v = maxval
@@ -170,14 +188,16 @@ def MINVAL(state, alpha, beta, depth):
     return v, action
 
 
-def EVAL(state):
+def EVAL(state, diff):
     # evaluate state either victory or not if terminal or heuristic if not\
     end, victor = state.check_end()
+    if diff == -1:
+        diff = 1 if random.random() < 0.5 else -1
     if end:
         if victor == 1:
-            return -1000
+            return -1 * diff
         elif victor == 2:
-            return 100
+            return 1 * diff
         else:
             return 0
     else:
